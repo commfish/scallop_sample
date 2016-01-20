@@ -3,6 +3,7 @@ library(dplyr)
 library(stringr)
 library(ggplot2)
 library(tidyr)
+library(reshape2)
 
 # events database
 events <- read.csv("./data/DATA_EVENTS_SCALLOP_DREDGE.csv")
@@ -71,7 +72,7 @@ samp_it <- function(df,n) {
 } 
 
 
-
+###########  Kamishak North #######
 #replicates looking at kamishak north bed at   
 replicate(1000, kn, simplify = FALSE) %>%
    lapply(., samp_it, n=mean(kn$s2)) %>% 
@@ -86,6 +87,13 @@ replicate(1000, kn, simplify = FALSE) %>%
    mutate(replicate = 1:n()) %>%
    group_by(SURVEY_AREA,BED,YEAR) %>% 
    summarize(Pbar = mean(P), Psd=sd(P)) -> kn3
+#added a rep for 35 % of grids sampled
+replicate(1000, kn, simplify = FALSE) %>%
+  lapply(., samp_it, n=(90*0.35)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> kn35
 
 replicate(1000, kn, simplify = FALSE) %>%
    lapply(., samp_it, n=mean(kn$s4)) %>% 
@@ -103,7 +111,199 @@ replicate(1000, kn, simplify = FALSE) %>%
 
 
 
-samp5
+#K.palof 
+#1-10-16
+# Summarize the above replicates to look at the different between 'kn5' or sampling 50% of grids and sampling 20,30, or 40 %
+
+kn5 %>% 
+  #mutate(Pbar52.dif = Pbar - kn2$Pbar, Psd52.dif = Psd -kn2$Psd ) %>% 
+  mutate(Pbar52.dif.per = ((Pbar - kn2$Pbar)/Pbar)*100, Pbar53.dif.per = ((Pbar - kn3$Pbar)/Pbar)*100, 
+         Pbar535.dif.per = ((Pbar - kn35$Pbar)/Pbar)*100, Pbar54.dif.per = ((Pbar - kn4$Pbar)/Pbar)*100) %>% 
+  mutate(Psd52.dif.per = ((Psd - kn2$Psd)/Psd)*100, Psd53.dif.per = ((Psd - kn3$Psd)/Psd)*100, 
+         Psd535.dif.per = ((Psd - kn35$Psd)/Psd)*100, Psd54.dif.per = ((Psd - kn4$Psd)/Psd)*100) -> kn5compare 
+
+kn5compare %>% 
+  summarize (Psd52.avg.per = mean(Psd52.dif.per, na.rm = T), Psd53.avg.per = mean(Psd53.dif.per, na.rm = T), Psd535.avg.per = mean(Psd535.dif.per, na.rm = T), 
+                 Psd54.avg.per = mean(Psd54.dif.per, na.rm = T)) -> kn5sum.sd
+
+kn5sum.sd <- melt(kn5sum.sd)
+kn_newcolumn <- c(0.2,0.3,0.35,0.4)
+kn5sum.sd$sample_size <- kn_newcolumn #adds a column for the sample size for graphing
+kn_newcolumn2 <- c("kn", "kn", "kn", "kn")
+kn5sum.sd$area_name <- kn_newcolumn2
+kn5sum.sd
+
+###########  Kamishak South #######
+#replicates looking at kamishak south bed at   
+replicate(1000, ks, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ks$s2)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ks2
+
+replicate(1000, ks, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ks$s3)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ks3
+#added a rep for 35 % of grids sampled
+replicate(1000, ks, simplify = FALSE) %>%
+  lapply(., samp_it, n=(68*0.35)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ks35
+
+replicate(1000, ks, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ks$s4)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ks4
+
+replicate(1000, ks, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ks$s5)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ks5
+
+ks5 %>% 
+  mutate(Pbar52.dif.per = ((Pbar - ks2$Pbar)/Pbar)*100, Pbar53.dif.per = ((Pbar - ks3$Pbar)/Pbar)*100, 
+         Pbar535.dif.per = ((Pbar - ks35$Pbar)/Pbar)*100, Pbar54.dif.per = ((Pbar - ks4$Pbar)/Pbar)*100) %>% 
+  mutate(Psd52.dif.per = ((Psd - ks2$Psd)/Psd)*100, Psd53.dif.per = ((Psd - ks3$Psd)/Psd)*100, 
+         Psd535.dif.per = ((Psd - ks35$Psd)/Psd)*100, Psd54.dif.per = ((Psd - ks4$Psd)/Psd)*100) -> ks5compare 
+
+ks5compare %>% 
+  summarize (Psd52.avg.per = mean(Psd52.dif.per, na.rm = T), Psd53.avg.per = mean(Psd53.dif.per, na.rm = T), Psd535.avg.per = mean(Psd535.dif.per, na.rm = T), 
+             Psd54.avg.per = mean(Psd54.dif.per, na.rm = T)) -> ks5sum.sd
+
+ks5sum.sd <- melt(ks5sum.sd) # transposes the data frame which includes the percent difference in sd for each sample size for use in graphs.
+ks_newcolumn <- c(0.2,0.3,0.35,0.4) 
+ks5sum.sd$sample_size <- ks_newcolumn #adds a column for the sample size for graphing
+ks_newcolumn2 <- c("ks", "ks", "ks", "ks")
+ks5sum.sd$area_name <- ks_newcolumn2 # adds a column for area_name for ease in graphing.
+ks5sum.sd  # summary data frame for use for graphing 
+
+###########  Kayak East #######
+#replicates looking at Kayak East bed at   
+replicate(1000, ke, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ke$s2)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ke2
+
+replicate(1000, ke, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ke$s3)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ke3
+#added a rep for 35 % of grids sampled
+replicate(1000, ke, simplify = FALSE) %>%
+  lapply(., samp_it, n=(79*0.35)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ke35
+
+replicate(1000, ke, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ke$s4)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ke4
+
+replicate(1000, ke, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(ke$s5)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> ke5
+
+ke5 %>% 
+  mutate(Pbar52.dif.per = ((Pbar - ke2$Pbar)/Pbar)*100, Pbar53.dif.per = ((Pbar - ke3$Pbar)/Pbar)*100, 
+         Pbar535.dif.per = ((Pbar - ke35$Pbar)/Pbar)*100, Pbar54.dif.per = ((Pbar - ke4$Pbar)/Pbar)*100) %>% 
+  mutate(Psd52.dif.per = ((Psd - ke2$Psd)/Psd)*100, Psd53.dif.per = ((Psd - ke3$Psd)/Psd)*100, 
+         Psd535.dif.per = ((Psd - ke35$Psd)/Psd)*100, Psd54.dif.per = ((Psd - ke4$Psd)/Psd)*100) -> ke5compare 
+
+ke5compare %>% 
+  summarize (Psd52.avg.per = mean(Psd52.dif.per, na.rm = T), Psd53.avg.per = mean(Psd53.dif.per, na.rm = T), Psd535.avg.per = mean(Psd535.dif.per, na.rm = T), 
+             Psd54.avg.per = mean(Psd54.dif.per, na.rm = T)) -> ke5sum.sd
+
+ke5sum.sd <- melt(ke5sum.sd) # transposes the data frame which includes the percent difference in sd for each sample size for use in graphs.
+ke_newcolumn <- c(0.2,0.3,0.35,0.4) 
+ke5sum.sd$sample_size <- ke_newcolumn #adds a column for the sample size for graphing
+ke_newcolumn2 <- c("ke", "ke", "ke", "ke")
+ke5sum.sd$area_name <- ke_newcolumn2 # adds a column for area_name for ease in graphing.
+ke5sum.sd  # summary data frame for use for graphing 
+
+###########  Kayak West #######
+#replicates looking at Kayak West bed at   
+replicate(1000, kw, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(kw$s2)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> kw2
+
+replicate(1000, kw, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(kw$s3)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> kw3
+#added a rep for 35 % of grids sampled
+replicate(1000, kw, simplify = FALSE) %>%
+  lapply(., samp_it, n=(49*0.35)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> kw35
+
+replicate(1000, kw, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(kw$s4)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> kw4
+
+replicate(1000, kw, simplify = FALSE) %>%
+  lapply(., samp_it, n=mean(kw$s5)) %>% 
+  bind_rows %>%
+  mutate(replicate = 1:n()) %>%
+  group_by(SURVEY_AREA,BED,YEAR) %>% 
+  summarize(Pbar = mean(P), Psd=sd(P)) -> kw5
+
+kw5 %>% 
+  mutate(Pbar52.dif.per = ((Pbar - kw2$Pbar)/Pbar)*100, Pbar53.dif.per = ((Pbar - kw3$Pbar)/Pbar)*100, 
+         Pbar535.dif.per = ((Pbar - kw35$Pbar)/Pbar)*100, Pbar54.dif.per = ((Pbar - kw4$Pbar)/Pbar)*100) %>% 
+  mutate(Psd52.dif.per = ((Psd - kw2$Psd)/Psd)*100, Psd53.dif.per = ((Psd - kw3$Psd)/Psd)*100, 
+         Psd535.dif.per = ((Psd - kw35$Psd)/Psd)*100, Psd54.dif.per = ((Psd - kw4$Psd)/Psd)*100) -> kw5compare 
+
+kw5compare %>% 
+  summarize (Psd52.avg.per = mean(Psd52.dif.per, na.rm = T), Psd53.avg.per = mean(Psd53.dif.per, na.rm = T), Psd535.avg.per = mean(Psd535.dif.per, na.rm = T), 
+             Psd54.avg.per = mean(Psd54.dif.per, na.rm = T)) -> kw5sum.sd
+
+kw5sum.sd <- melt(kw5sum.sd) # transposes the data frame which includes the percent difference in sd for each sample size for use in graphs.
+kw_newcolumn <- c(0.2,0.3,0.35,0.4) 
+kw5sum.sd$sample_size <- kw_newcolumn #adds a column for the sample size for graphing
+kw_newcolumn2 <- c("kw", "kw", "kw", "kw")
+kw5sum.sd$area_name <- kw_newcolumn2 # adds a column for area_name for ease in graphing.
+kw5sum.sd  # summary data frame for use for graphing 
+
+##################################################
+### add dataframe together for plotting
+sum_all <- rbind(kn5sum.sd, ks5sum.sd, ke5sum.sd, kw5sum.sd)
+sum_all
+### plotting
+###
+qplot (sample_size, value, data=sum_all, geom=c("point", "line"), 
+       color = area_name, main = "Regression of sample size on % difference in SD", 
+      xlab = "Sample Size", ylab = "Percent difference in SD from 50% sampled")
 
 
 
